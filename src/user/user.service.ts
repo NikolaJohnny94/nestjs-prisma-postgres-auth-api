@@ -54,4 +54,18 @@ export class UserService {
       where,
     });
   }
+
+  async storeRefreshToken(userId: number, refreshToken: string) {
+    return this.updateUser({
+      where: { id: userId },
+      data: { refreshToken },
+    });
+  }
+
+  async removeRefreshToken(userId: number) {
+    return this.updateUser({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+  }
 }
