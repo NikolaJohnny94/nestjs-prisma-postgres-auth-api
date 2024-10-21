@@ -7,15 +7,13 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
   @Post('')
   async signupUser(
-    @Body() userData: { name?: string; email: string },
+    @Body() userData: { name: string; email: string; password: string },
   ): Promise<UserModel> {
     return this.userService.createUser(userData);
   }
 
-  @Get('')
-  async getUser(
-    @Body() userWhereUniqueInput: { email: string },
-  ): Promise<UserModel> {
+  @Get('get')
+  async getUser(@Body() userWhereUniqueInput: any): Promise<UserModel> {
     return this.userService.getUser(userWhereUniqueInput);
   }
 }

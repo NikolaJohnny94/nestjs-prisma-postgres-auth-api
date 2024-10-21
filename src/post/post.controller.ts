@@ -18,6 +18,7 @@ import { GetQueryPostParamsDto } from './dto/params/get-query-post-params.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostResponse } from './types/response.type';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { buildQueryPayload } from './helpers/build-query-payload.helper';
 
 @Controller('posts')
 export class PostController {
@@ -29,14 +30,8 @@ export class PostController {
     @Query() params: GetQueryPostParamsDto,
   ): Promise<PostResponse> {
     try {
-      const { skip, take, cursor, where, orderBy } = params;
-      const data = await this.postService.posts({
-        skip: skip ? Number(skip) : undefined,
-        take: take ? Number(take) : undefined,
-        cursor: cursor ? { id: Number(cursor) } : undefined,
-        where: where ? JSON.parse(where) : undefined,
-        orderBy: orderBy ? JSON.parse(orderBy) : undefined,
-      });
+      const queryPayload = buildQueryPayload(params);
+      const data = await this.postService.posts(queryPayload);
       return { success: true, message: 'Posts retrieved successfully', data };
     } catch (error) {
       response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -78,7 +73,10 @@ export class PostController {
   }
 
   @Post('')
-  async createNewPost(@Body() postData: CreatePostDto): Promise<PostResponse> {
+  async createNewPost(
+    @Body() postData: CreatePostDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<PostResponse> {
     const { title, content } = postData;
     try {
       const data = await this.postService.createPost({
@@ -91,6 +89,7 @@ export class PostController {
       return { success: true, message: 'Post created successfully', data };
     } catch (error) {
       if (error instanceof Prisma.PrismaClientValidationError) {
+        response.status(HttpStatus.BAD_REQUEST);
         return {
           success: false,
           data: null,
@@ -98,7 +97,19 @@ export class PostController {
             'Validation error occurred. Please double-check your input data and try again.',
         };
       }
-
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        response.status(HttpStatus.CONFLICT);
+        return {
+          success: false,
+          data: null,
+          message:
+            'A post with the same title already exists. Please try again with a different title.',
+        };
+      }
+      response.status(HttpStatus.INTERNAL_SERVER_ERROR);
       return {
         success: false,
         message:
@@ -112,10 +123,13 @@ export class PostController {
   async getFilteredPosts(
     @Param('searchString') searchString: string,
     @Res({ passthrough: true }) response: Response,
+    @Query() params: GetQueryPostParamsDto,
   ): Promise<PostResponse> {
     try {
+      const queryPayload = buildQueryPayload(params, false);
       const lowerSearchString = searchString.toLowerCase();
       const posts = await this.postService.posts({
+        ...queryPayload,
         where: {
           OR: [
             {
@@ -127,7 +141,6 @@ export class PostController {
           ],
         },
       });
-
       return {
         success: true,
         message: 'Filtered posts retrieved successfully',
@@ -161,6 +174,38 @@ export class PostController {
         data: updatedPost,
       };
     } catch (error) {
+      response.status(HttpStatus.NOT_FOUND);
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        return {
+          success: false,
+          message: `Post with id: ${id} not found in the DB`,
+          data: null,
+        };
+      }
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        response.status(HttpStatus.BAD_REQUEST);
+        return {
+          success: false,
+          data: null,
+          message:
+            'Validation error occurred. Please double-check your input data and try again.',
+        };
+      }
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        response.status(HttpStatus.CONFLICT);
+        return {
+          success: false,
+          data: null,
+          message:
+            'A post with the same title already exists. Please try again with a different title.',
+        };
+      }
       response.status(HttpStatus.INTERNAL_SERVER_ERROR);
       return {
         success: false,

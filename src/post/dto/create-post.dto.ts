@@ -7,7 +7,4 @@ export class CreatePostDto {
   @IsOptional()
   @IsString()
   content?: string;
-
-  //   @IsEmail()
-  //   authorEmail: string;
 }
