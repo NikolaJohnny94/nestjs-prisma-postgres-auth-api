@@ -2,26 +2,17 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UserModule } from 'src/user/user.module';
-import { jwtConstants } from './constants';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthGuard } from './auth.guard';
+import { AppGuardProvider } from './providers/app-guard.provider';
+
+const configuredJwtModule = JwtModule.register({
+  global: true,
+  secret: process.env.JWT_SECRET,
+});
 
 @Module({
-  imports: [
-    UserModule,
-    JwtModule.register({
-      global: true,
-      secret: jwtConstants.secret,
-      // signOptions: { expiresIn: '3600s' },
-    }),
-  ],
+  imports: [UserModule, configuredJwtModule],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    {
-      provide: 'APP_GUARD',
-      useClass: AuthGuard,
-    },
-  ],
+  providers: [AuthService, AppGuardProvider],
 })
 export class AuthModule {}

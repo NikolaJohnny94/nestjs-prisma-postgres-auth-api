@@ -39,16 +39,8 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Post('signout')
   async signOut(@Request() req) {
-    console.log(req.user);
     const userId = req.user.sub;
     return this.authService.signOut(userId);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('profile')
-  async getProfile(@Request() req) {
-    const user = await this.userService.getUser({ id: req.user.sub });
-    return user;
   }
 
   @UseGuards(AuthGuard)
@@ -56,5 +48,12 @@ export class AuthController {
   async refreshToken(@Body('refresh_token') refreshToken: string, @Req() req) {
     const userId = req.user.sub;
     return this.authService.getNewAccessToken(userId, refreshToken);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  async getProfile(@Request() req) {
+    const user = await this.userService.getUser({ id: req.user.sub });
+    return user;
   }
 }

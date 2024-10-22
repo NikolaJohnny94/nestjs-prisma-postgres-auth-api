@@ -9,6 +9,7 @@ import {
   Res,
   HttpStatus,
   ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Controller } from '@nestjs/common';
@@ -28,10 +29,11 @@ export class PostController {
   async getPosts(
     @Res({ passthrough: true }) response: Response,
     @Query() params: GetQueryPostParamsDto,
+    @Request() request,
   ): Promise<PostResponse> {
     try {
-      const queryPayload = buildQueryPayload(params);
-      const data = await this.postService.posts(queryPayload);
+      const queryPayload = buildQueryPayload(params, request.user.sub);
+      const data = await this.postService.getPosts(queryPayload);
       return { success: true, message: 'Posts retrieved successfully', data };
     } catch (error) {
       response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
@@ -46,9 +48,13 @@ export class PostController {
   async getPostById(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) response: Response,
+    @Request() request,
   ): Promise<PostResponse> {
     try {
-      const post = await this.postService.post({ id });
+      const post = await this.postService.getPost({
+        id,
+        authorId: request.user.sub,
+      });
       if (!post) {
         response.status(HttpStatus.NOT_FOUND);
         return {
@@ -72,10 +78,50 @@ export class PostController {
     }
   }
 
+  @Get('filtered/:searchString')
+  async getFilteredPosts(
+    @Param('searchString') searchString: string,
+    @Res({ passthrough: true }) response: Response,
+    @Request() request,
+    @Query() params: GetQueryPostParamsDto,
+  ): Promise<PostResponse> {
+    try {
+      const queryPayload = buildQueryPayload(params, false);
+      const lowerSearchString = searchString.toLowerCase();
+      const posts = await this.postService.getPosts({
+        ...queryPayload,
+        where: {
+          authorId: request.user.sub,
+          OR: [
+            {
+              title: { contains: lowerSearchString, mode: 'insensitive' },
+            },
+            {
+              content: { contains: lowerSearchString, mode: 'insensitive' },
+            },
+          ],
+        },
+      });
+      return {
+        success: true,
+        message: 'Filtered posts retrieved successfully',
+        data: posts,
+      };
+    } catch (error) {
+      response.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return {
+        success: false,
+        message: 'Error occurred while retrieving filtered posts from the DB.',
+        data: null,
+      };
+    }
+  }
+
   @Post('')
   async createNewPost(
     @Body() postData: CreatePostDto,
     @Res({ passthrough: true }) response: Response,
+    @Request() request,
   ): Promise<PostResponse> {
     const { title, content } = postData;
     try {
@@ -83,7 +129,7 @@ export class PostController {
         title,
         content,
         author: {
-          connect: { email: 'tom@email.com' },
+          connect: { id: request.user.sub },
         },
       });
       return { success: true, message: 'Post created successfully', data };
@@ -119,53 +165,17 @@ export class PostController {
     }
   }
 
-  @Get('filtered/:searchString')
-  async getFilteredPosts(
-    @Param('searchString') searchString: string,
-    @Res({ passthrough: true }) response: Response,
-    @Query() params: GetQueryPostParamsDto,
-  ): Promise<PostResponse> {
-    try {
-      const queryPayload = buildQueryPayload(params, false);
-      const lowerSearchString = searchString.toLowerCase();
-      const posts = await this.postService.posts({
-        ...queryPayload,
-        where: {
-          OR: [
-            {
-              title: { contains: lowerSearchString, mode: 'insensitive' },
-            },
-            {
-              content: { contains: lowerSearchString, mode: 'insensitive' },
-            },
-          ],
-        },
-      });
-      return {
-        success: true,
-        message: 'Filtered posts retrieved successfully',
-        data: posts,
-      };
-    } catch (error) {
-      response.status(HttpStatus.INTERNAL_SERVER_ERROR);
-      return {
-        success: false,
-        message: 'Error occurred while retrieving filtered posts from the DB.',
-        data: null,
-      };
-    }
-  }
-
   @Put(':id')
   async updatePost(
     @Param('id', ParseIntPipe) id: number,
     @Body()
     body: UpdatePostDto,
     @Res({ passthrough: true }) response: Response,
+    @Request() request,
   ): Promise<PostResponse> {
     try {
       const updatedPost = await this.postService.updatePost({
-        where: { id },
+        where: { id, authorId: request.user.sub },
         data: body,
       });
       return {
@@ -219,9 +229,13 @@ export class PostController {
   async deletePost(
     @Param('id', ParseIntPipe) id: number,
     @Res({ passthrough: true }) response: Response,
+    @Request() request,
   ): Promise<PostResponse> {
     try {
-      const deletedPost = await this.postService.deletePost({ id });
+      const deletedPost = await this.postService.deletePost({
+        id,
+        authorId: request.user.sub,
+      });
 
       return {
         success: true,

@@ -68,4 +68,11 @@ export class UserService {
       data: { refreshToken: null },
     });
   }
+
+  async incrementTokenVersion(userId: number) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { tokenVersion: { increment: 1 } },
+    });
+  }
 }

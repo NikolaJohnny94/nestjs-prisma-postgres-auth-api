@@ -19,11 +19,11 @@ export class AuthService {
     if (user?.password !== pass) throw new UnauthorizedException();
 
     const access_token = await this.jwtService.signAsync(
-      { sub: user.id },
+      { sub: user.id, tokenVersion: user.tokenVersion },
       { expiresIn: '15m' },
     );
     const refresh_token = await this.jwtService.signAsync(
-      { sub: user.id },
+      { sub: user.id, tokenVersion: user.tokenVersion },
       { expiresIn: '7d' },
     );
 
@@ -37,11 +37,11 @@ export class AuthService {
     const user = await this.usersService.createUser(signUpData);
 
     const access_token = await this.jwtService.signAsync(
-      { sub: user.id },
+      { sub: user.id, tokenVersion: user.tokenVersion },
       { expiresIn: '1h' },
     );
     const refresh_token = await this.jwtService.signAsync(
-      { sub: user.id },
+      { sub: user.id, tokenVersion: user.tokenVersion },
       { expiresIn: '7d' },
     );
 
@@ -51,7 +51,6 @@ export class AuthService {
   }
 
   async signOut(userId: number): Promise<{ message: string }> {
-    console.log(userId);
     await this.usersService.removeRefreshToken(userId);
     return { message: 'User successfully signed out' };
   }
@@ -67,8 +66,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
+    const { tokenVersion: updatedTokenVersion } =
+      await this.usersService.incrementTokenVersion(userId);
+
     const access_token = await this.jwtService.signAsync(
-      { sub: user.id },
+      { sub: user.id, tokenVersion: updatedTokenVersion },
       { expiresIn: '15m' },
     );
 

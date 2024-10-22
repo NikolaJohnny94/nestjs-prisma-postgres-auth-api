@@ -3,6 +3,7 @@ import { GetQueryPostParamsDto } from '../dto/params/get-query-post-params.dto';
 export function buildQueryPayload(
   params: GetQueryPostParamsDto,
   includeWhereClause: boolean = true,
+  userId?: number,
 ) {
   const { skip, take, cursor, orderBy, where } = params;
   const queryPayload = {
@@ -11,7 +12,10 @@ export function buildQueryPayload(
     cursor: cursor ? { id: Number(cursor) } : undefined,
     orderBy: orderBy ? JSON.parse(orderBy) : undefined,
     ...(includeWhereClause && {
-      where: where ? JSON.parse(where) : undefined,
+      where: {
+        ...JSON.parse(where || '{}'),
+        authorId: userId,
+      },
     }),
   };
   return queryPayload;
