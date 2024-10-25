@@ -1,3 +1,4 @@
+//Core
 import {
   Body,
   Controller,
@@ -6,15 +7,27 @@ import {
   HttpStatus,
   UseGuards,
   Request,
-  Get,
   Req,
 } from '@nestjs/common';
+// Services
 import { AuthService } from './auth.service';
-import { SignInDto } from './dto/singin-dto';
-import { AuthGuard } from './auth.guard';
 import { UserService } from 'src/user/user.service';
-import { Public } from './decorators/public.decorator';
+//Guards
+import { AuthGuard } from './auth.guard';
+//Types and DTOs
+import { SignInDto } from './dto/singin-dto';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
+// Decorators
+import { Public } from './decorators/public.decorator';
+
+type AuthResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    access_token: string;
+    refresh_token: string;
+  } | null;
+};
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -25,22 +38,39 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signin')
-  signIn(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto.email, signInDto.pass);
+  async signIn(@Body() signInDto: SignInDto): Promise<AuthResponse> {
+    const { email, pass } = signInDto;
+    const tokens = await this.authService.signIn(email, pass);
+    return {
+      success: true,
+      message: 'User signed in successfully',
+      data: tokens,
+    };
   }
 
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signup')
-  signUp(@Body() signUpDto: CreateUserDto) {
-    return this.authService.signUp(signUpDto);
+  async signUp(@Body() signUpDto: CreateUserDto) {
+    const newUser = await this.authService.signUp(signUpDto);
+
+    return {
+      success: true,
+      message: 'User signed up successfully',
+      data: newUser,
+    };
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Post('signout')
   async signOut(@Request() req) {
     const userId = req.user.sub;
-    return this.authService.signOut(userId);
+    await this.authService.signOut(userId);
+
+    return {
+      success: true,
+      message: 'User signed out successfully',
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -48,12 +78,5 @@ export class AuthController {
   async refreshToken(@Body('refresh_token') refreshToken: string, @Req() req) {
     const userId = req.user.sub;
     return this.authService.getNewAccessToken(userId, refreshToken);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('profile')
-  async getProfile(@Request() req) {
-    const user = await this.userService.getUser({ id: req.user.sub });
-    return user;
   }
 }

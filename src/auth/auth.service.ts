@@ -1,6 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+// Core
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+// Services
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
+// DTOs
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 
 @Injectable()
@@ -16,14 +23,23 @@ export class AuthService {
   ): Promise<{ access_token: string; refresh_token: string }> {
     const user = await this.usersService.getUser({ email });
 
-    if (user?.password !== pass) throw new UnauthorizedException();
+    if (!user)
+      throw new NotFoundException(
+        `User with email: ${email} was not found in the Database`,
+      );
+
+    if (user?.password !== pass)
+      throw new UnauthorizedException('Incorect password. Pleaase try again.');
+
+    const { tokenVersion: updatedTokenVersion } =
+      await this.usersService.incrementTokenVersion(user.id);
 
     const access_token = await this.jwtService.signAsync(
-      { sub: user.id, tokenVersion: user.tokenVersion },
+      { sub: user.id, role: user.role, tokenVersion: updatedTokenVersion },
       { expiresIn: '15m' },
     );
     const refresh_token = await this.jwtService.signAsync(
-      { sub: user.id, tokenVersion: user.tokenVersion },
+      { sub: user.id },
       { expiresIn: '7d' },
     );
 
@@ -36,12 +52,15 @@ export class AuthService {
   ): Promise<{ access_token: string; refresh_token: string }> {
     const user = await this.usersService.createUser(signUpData);
 
+    const { tokenVersion: updatedTokenVersion } =
+      await this.usersService.incrementTokenVersion(user.id);
+
     const access_token = await this.jwtService.signAsync(
-      { sub: user.id, tokenVersion: user.tokenVersion },
+      { sub: user.id, role: user.role, tokenVersion: updatedTokenVersion },
       { expiresIn: '1h' },
     );
     const refresh_token = await this.jwtService.signAsync(
-      { sub: user.id, tokenVersion: user.tokenVersion },
+      { sub: user.id },
       { expiresIn: '7d' },
     );
 
@@ -50,9 +69,9 @@ export class AuthService {
     return { refresh_token, access_token };
   }
 
-  async signOut(userId: number): Promise<{ message: string }> {
-    await this.usersService.removeRefreshToken(userId);
-    return { message: 'User successfully signed out' };
+  async signOut(userId: number): Promise<any> {
+    await this.usersService.incrementTokenVersion(userId);
+    return this.usersService.removeRefreshToken(userId);
   }
 
   async getNewAccessToken(
@@ -70,7 +89,7 @@ export class AuthService {
       await this.usersService.incrementTokenVersion(userId);
 
     const access_token = await this.jwtService.signAsync(
-      { sub: user.id, tokenVersion: updatedTokenVersion },
+      { sub: user.id, role: user.role, tokenVersion: updatedTokenVersion },
       { expiresIn: '15m' },
     );
 

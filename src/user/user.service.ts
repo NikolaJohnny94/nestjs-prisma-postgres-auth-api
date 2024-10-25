@@ -1,27 +1,36 @@
+// Core
 import { Injectable } from '@nestjs/common';
+// Prisma
+import * as client from '@prisma/client';
+// Services
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma, User } from '@prisma/client';
+// DTOs
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async getUser(
-    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
+    userWhereUniqueInput: client.Prisma.UserWhereUniqueInput,
+    select?: client.Prisma.UserSelect,
+  ): Promise<client.User | null> {
+    return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
+      select,
     });
-    return user;
   }
 
-  async getUsers(params: {
-    skip?: number;
-    take?: number;
-    cursor?: Prisma.UserWhereUniqueInput;
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
-  }): Promise<User[]> {
+  async getUsers(
+    params: {
+      skip?: number;
+      take?: number;
+      cursor?: client.Prisma.UserWhereUniqueInput;
+      where?: client.Prisma.UserWhereInput;
+      orderBy?: client.Prisma.UserOrderByWithRelationInput;
+    },
+    select?: client.Prisma.UserSelect,
+  ): Promise<client.User[]> {
     const { skip, take, cursor, where, orderBy } = params;
     return this.prisma.user.findMany({
       skip,
@@ -29,19 +38,20 @@ export class UserService {
       cursor,
       where,
       orderBy,
+      select,
     });
   }
 
-  async createUser(data: Prisma.UserCreateInput): Promise<User> {
+  async createUser(data: CreateUserDto): Promise<client.User> {
     return this.prisma.user.create({
       data,
     });
   }
 
   async updateUser(params: {
-    where: Prisma.UserWhereUniqueInput;
-    data: Prisma.UserUpdateInput;
-  }): Promise<User> {
+    where: client.Prisma.UserWhereUniqueInput;
+    data: client.Prisma.UserUpdateInput;
+  }): Promise<client.User> {
     const { where, data } = params;
     return this.prisma.user.update({
       data,
@@ -49,7 +59,9 @@ export class UserService {
     });
   }
 
-  async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
+  async deleteUser(
+    where: client.Prisma.UserWhereUniqueInput,
+  ): Promise<client.User> {
     return this.prisma.user.delete({
       where,
     });

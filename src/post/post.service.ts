@@ -1,16 +1,30 @@
+//Core
 import { Injectable } from '@nestjs/common';
-import { Post, Prisma } from '@prisma/client';
+//Prisma
+import { Prisma, Post, Role } from '@prisma/client';
+// Services
 import { PrismaService } from '../prisma/prisma.service';
+//DTOs
 import { GetPostParamsDto } from './dto/params/get-post-params.dto';
+
+type PostWithAuthor = Post & { author: { role: Role } };
+
 @Injectable()
 export class PostService {
   constructor(private prisma: PrismaService) {}
 
   async getPost(
     postWhereUniqueInput: Prisma.PostWhereUniqueInput,
-  ): Promise<Post | null> {
+  ): Promise<PostWithAuthor | null> {
     return this.prisma.post.findUnique({
       where: postWhereUniqueInput,
+      include: {
+        author: {
+          select: {
+            role: true,
+          },
+        },
+      },
     });
   }
 
@@ -44,7 +58,11 @@ export class PostService {
 
   async deletePost(where: Prisma.PostWhereUniqueInput): Promise<Post> {
     return await this.prisma.post.delete({
-      where,
+      // where
+      where: {
+        id: where.id,
+        authorId: where.authorId,
+      },
     });
   }
 

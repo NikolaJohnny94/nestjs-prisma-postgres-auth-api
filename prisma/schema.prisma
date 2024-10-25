@@ -13,6 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER      @map("user")
+  MODERATOR @map("moderator")
+  ADMIN     @map("admin")
+}
+
 model User {
   id           Int     @id @default(autoincrement())
   email        String  @unique
@@ -20,6 +26,7 @@ model User {
   password     String
   refreshToken String?
   tokenVersion Int     @default(0)
+  role         Role    @default(USER)
   posts        Post[]
 }
 
