@@ -8,7 +8,9 @@ import {
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 // DTOs
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreateUserDto } from 'src/shared/dto/create-user.dto';
+// Types
+import { TokenResponse } from './types';
 
 @Injectable()
 export class AuthService {
@@ -17,10 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(
-    email: string,
-    pass: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  async signIn(email: string, pass: string): Promise<TokenResponse> {
     const user = await this.usersService.getUser({ email });
 
     if (!user)
@@ -47,9 +46,7 @@ export class AuthService {
 
     return { refresh_token, access_token };
   }
-  async signUp(
-    signUpData: CreateUserDto,
-  ): Promise<{ access_token: string; refresh_token: string }> {
+  async signUp(signUpData: CreateUserDto): Promise<TokenResponse> {
     const user = await this.usersService.createUser(signUpData);
 
     const { tokenVersion: updatedTokenVersion } =
@@ -69,15 +66,15 @@ export class AuthService {
     return { refresh_token, access_token };
   }
 
-  async signOut(userId: number): Promise<any> {
+  async signOut(userId: number): Promise<void> {
     await this.usersService.incrementTokenVersion(userId);
-    return this.usersService.removeRefreshToken(userId);
+    await this.usersService.removeRefreshToken(userId);
   }
 
   async getNewAccessToken(
     userId: number,
     refreshToken: string,
-  ): Promise<{ access_token: string }> {
+  ): Promise<Pick<TokenResponse, 'access_token'>> {
     const user = await this.usersService.getUser({ id: userId });
 
     if (!user || user.refreshToken !== refreshToken) {

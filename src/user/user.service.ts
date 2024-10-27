@@ -1,20 +1,23 @@
 // Core
 import { Injectable } from '@nestjs/common';
 // Prisma
-import * as client from '@prisma/client';
+import { Prisma } from '@prisma/client';
 // Services
 import { PrismaService } from 'src/prisma/prisma.service';
 // DTOs
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from 'src/shared/dto/create-user.dto';
+import { GetUserParamsDto } from './dto/get-user-params.dto';
+//Types
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async getUser(
-    userWhereUniqueInput: client.Prisma.UserWhereUniqueInput,
-    select?: client.Prisma.UserSelect,
-  ): Promise<client.User | null> {
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+    select?: Prisma.UserSelect,
+  ): Promise<User | null> {
     return this.prisma.user.findUnique({
       where: userWhereUniqueInput,
       select,
@@ -22,15 +25,9 @@ export class UserService {
   }
 
   async getUsers(
-    params: {
-      skip?: number;
-      take?: number;
-      cursor?: client.Prisma.UserWhereUniqueInput;
-      where?: client.Prisma.UserWhereInput;
-      orderBy?: client.Prisma.UserOrderByWithRelationInput;
-    },
-    select?: client.Prisma.UserSelect,
-  ): Promise<client.User[]> {
+    params: GetUserParamsDto,
+    select?: Prisma.UserSelect,
+  ): Promise<User[]> {
     const { skip, take, cursor, where, orderBy } = params;
     return this.prisma.user.findMany({
       skip,
@@ -42,16 +39,16 @@ export class UserService {
     });
   }
 
-  async createUser(data: CreateUserDto): Promise<client.User> {
+  async createUser(data: CreateUserDto): Promise<User> {
     return this.prisma.user.create({
       data,
     });
   }
 
   async updateUser(params: {
-    where: client.Prisma.UserWhereUniqueInput;
-    data: client.Prisma.UserUpdateInput;
-  }): Promise<client.User> {
+    where: Prisma.UserWhereUniqueInput;
+    data: Prisma.UserUpdateInput;
+  }): Promise<User> {
     const { where, data } = params;
     return this.prisma.user.update({
       data,
@@ -59,29 +56,27 @@ export class UserService {
     });
   }
 
-  async deleteUser(
-    where: client.Prisma.UserWhereUniqueInput,
-  ): Promise<client.User> {
+  async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
     return this.prisma.user.delete({
       where,
     });
   }
 
-  async storeRefreshToken(userId: number, refreshToken: string) {
+  async storeRefreshToken(userId: number, refreshToken: string): Promise<User> {
     return this.updateUser({
       where: { id: userId },
       data: { refreshToken },
     });
   }
 
-  async removeRefreshToken(userId: number) {
+  async removeRefreshToken(userId: number): Promise<User> {
     return this.updateUser({
       where: { id: userId },
       data: { refreshToken: null },
     });
   }
 
-  async incrementTokenVersion(userId: number) {
+  async incrementTokenVersion(userId: number): Promise<User> {
     return this.prisma.user.update({
       where: { id: userId },
       data: { tokenVersion: { increment: 1 } },

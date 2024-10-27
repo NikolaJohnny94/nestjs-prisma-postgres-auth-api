@@ -1,8 +1,9 @@
+//Core
 import {
+  Request,
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -11,19 +12,20 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
+// Services
 import { UserService } from './user.service';
-import { User } from '@prisma/client';
-import { Public } from 'src/auth/decorators/public.decorator';
-import { Request } from '@nestjs/common';
+//Guards
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+//Utils
+import { recordNotFoundAndForbiddenException } from 'src/shared/utils/record-not-found-and-forbidden-exception.util';
+//Decorators
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { CreateUserDto } from './dto/create-user.dto';
-
-type UserResponse = {
-  success: boolean;
-  message: string;
-  data: User | User[] | null;
-};
+import { Public } from 'src/auth/decorators/public.decorator';
+//DTOs
+import { CreateUserDto } from 'src/shared/dto/create-user.dto';
+//Types
+import { UserResponse, RequestedUserInfo } from './types';
+import { LoggedUser } from 'src/shared/types/logged-user.type';
 
 @Controller('users')
 export class UserController {
@@ -124,16 +126,20 @@ export class UserController {
     updatedUsersData: any,
     @Request() request,
   ): Promise<UserResponse> {
-    const loggedUser = request.user;
+    const loggedUser: LoggedUser = request.user;
 
-    const user = await this.userService.getUser({ id });
+    const user = (await this.userService.getUser(
+      { id },
+      { role: true, id: true },
+    )) as RequestedUserInfo;
 
-    if (!user) throw new NotFoundException('User not found');
-
-    if (loggedUser.role === 'MODERATOR' && user.role === 'ADMIN') {
-      throw new ForbiddenException('You cannot update admin users!');
-    }
-
+    recordNotFoundAndForbiddenException(
+      user,
+      loggedUser.role,
+      loggedUser.sub,
+      'update',
+      'user',
+    );
     const updatedPost = await this.userService.updateUser({
       where: { id },
       data: updatedUsersData,
@@ -153,15 +159,20 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Request() request,
   ): Promise<UserResponse> {
-    const loggedUser = request.user;
+    const loggedUser: LoggedUser = request.user;
 
-    const user = await this.userService.getUser({ id });
+    const user = (await this.userService.getUser(
+      { id },
+      { role: true, id: true },
+    )) as RequestedUserInfo;
 
-    if (!user) throw new NotFoundException('User not found');
-
-    if (loggedUser.role === 'MODERATOR' && user.role === 'ADMIN') {
-      throw new ForbiddenException('You cannot delete admin users!');
-    }
+    recordNotFoundAndForbiddenException(
+      user,
+      loggedUser.role,
+      loggedUser.sub,
+      'delete',
+      'user',
+    );
 
     const deletedUser = await this.userService.deleteUser({ id });
 

@@ -10,25 +10,22 @@ import {
   ParseIntPipe,
   Request,
   NotFoundException,
-  ForbiddenException,
+  UseGuards,
 } from '@nestjs/common';
 import { Controller } from '@nestjs/common';
 // Services
 import { PostService } from './post.service';
 // Types and DTOs
-import { GetQueryPostParamsDto } from './dto/params/get-query-post-params.dto';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
-import { PostResponse } from './types/response.type';
+import { CreatePostDto, UpdatePostDto } from './dto';
+import { PostResponse, PostParams, RequestedPostInfoForCheck } from './types';
 // Utils and helpers
 import { buildQueryPayload } from './helpers/build-query-payload.helper';
+import { recordNotFoundAndForbiddenException } from 'src/shared/utils/record-not-found-and-forbidden-exception.util';
+// Decorators
 import { Public } from 'src/auth/decorators/public.decorator';
-
-enum ROLES {
-  USER = 'USER',
-  MODERATOR = 'MODERATOR',
-  ADMIN = 'ADMIN',
-}
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { LoggedUser } from 'src/shared/types/logged-user.type';
 
 @Controller('posts')
 export class PostController {
@@ -36,16 +33,12 @@ export class PostController {
 
   @Get('')
   async getUsersPosts(
-    @Query() params: any,
-    //ParsePipe type
+    @Query() params: PostParams,
     @Request() request,
   ): Promise<PostResponse> {
-    const queryPayload = buildQueryPayload(params, true, {
+    const queryPayload = buildQueryPayload(params, {
       authorId: request.user.sub,
     });
-
-    //contains i published/unpublished
-    // samo contains published/unpublished, (authorId vec je prebaceno) i id postoji ruta za to
 
     const data = await this.postService.getPosts(queryPayload);
 
@@ -54,12 +47,13 @@ export class PostController {
 
   @Public()
   @Get('published')
-  async getAllPublishedPosts(@Query() params: any): Promise<PostResponse> {
-    const queryPayload = buildQueryPayload(params, true, {
+  async getAllPublishedPosts(
+    @Query() params: PostParams,
+  ): Promise<PostResponse> {
+    const queryPayload = buildQueryPayload(params, {
       published: true,
     });
-    // contains samo
-    // samo contains published (vec prebaceno) (authorId new treba) i id postoji ruta za to
+
     const data = await this.postService.getPosts(queryPayload);
 
     return { success: true, message: 'Posts retrieved successfully', data };
@@ -128,28 +122,18 @@ export class PostController {
     updatedPostData: UpdatePostDto,
     @Request() request,
   ): Promise<PostResponse> {
-    const user = request.user;
-
-    const post = await this.postService.getPost({
-      id,
-      ...(user.role === 'USER' && { authorId: user.sub }),
-    });
+    const user: LoggedUser = request.user;
+    const post = (await this.postService.getPost(
+      {
+        id,
+        authorId: user.sub,
+      },
+      {
+        id: true,
+      },
+    )) as RequestedPostInfoForCheck;
 
     if (!post) throw new NotFoundException('Post not found');
-
-    if (user.role === 'MODERATOR' && post.author.role === 'ADMIN') {
-      throw new ForbiddenException("You cannot update admin's posts");
-    }
-
-    if (
-      user.role === 'MODERATOR' &&
-      post.authorId !== user.sub &&
-      post.author.role === 'MODERATOR'
-    ) {
-      throw new ForbiddenException(
-        'You can only update your own posts and posts from users',
-      );
-    }
 
     const updatedPost = await this.postService.updatePost({
       where: { id },
@@ -168,34 +152,16 @@ export class PostController {
     @Param('id', ParseIntPipe) id: number,
     @Request() request,
   ): Promise<PostResponse> {
-    const user = request.user;
+    const user: LoggedUser = request.user;
 
-    const post = await this.postService.getPost({
-      id,
-      ...(user.role === 'USER' && { authorId: user.sub }),
-    });
-
-    console.log(post, user.sub, user.role, post.author.role);
+    const post = await this.postService.getPost(
+      { id, authorId: user.sub },
+      { id: true },
+    );
 
     if (!post) throw new NotFoundException('Post not found');
 
-    if (user.role === 'MODERATOR' && post.author.role === 'ADMIN') {
-      throw new ForbiddenException("You cannot delete admin's posts");
-    }
-
-    if (
-      user.role === 'MODERATOR' &&
-      post.authorId !== user.sub &&
-      post.author.role === 'MODERATOR'
-    ) {
-      throw new ForbiddenException(
-        'You can only delete your own posts and posts from users',
-      );
-    }
-
-    const deletedPost = await this.postService.deletePost({
-      id,
-    });
+    const deletedPost = await this.postService.deletePost({ id });
 
     return {
       success: true,
@@ -204,57 +170,89 @@ export class PostController {
     };
   }
 
-  // @Get(':id')
-  // async getPostById(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Request() request,
-  // ): Promise<PostResponse> {
-  //   const post = await this.postService.getPost({
-  //     id,
-  //     authorId: request.user.sub,
-  //   });
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'moderator')
+  @Put('published/:id')
+  async updatePublishedPost(
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    updatedPostData: UpdatePostDto,
+    @Request() request,
+  ): Promise<PostResponse> {
+    const user: LoggedUser = request.user;
+    const post = (await this.postService.getPost(
+      {
+        id,
+        published: true,
+      },
+      {
+        authorId: true,
+        author: {
+          select: {
+            role: true,
+          },
+        },
+      },
+    )) as RequestedPostInfoForCheck;
 
-  //   if (!post) throw new NotFoundException('Post not found');
+    recordNotFoundAndForbiddenException(
+      post,
+      user.role,
+      user.sub,
+      'update',
+      'post',
+    );
 
-  //   return {
-  //     success: true,
-  //     message: 'Post retrieved successfully',
-  //     data: post,
-  //   };
-  // }
+    const updatedPost = await this.postService.updatePost({
+      where: { id },
+      data: updatedPostData,
+    });
+
+    return {
+      success: true,
+      message: 'Post updated successfully',
+      data: updatedPost,
+    };
+  }
+
+  @UseGuards(RolesGuard)
+  @Roles('admin', 'moderator')
+  @Delete('published/:id')
+  async deletePublishedPost(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() request,
+  ): Promise<PostResponse> {
+    const user: LoggedUser = request.user;
+
+    const post = (await this.postService.getPost(
+      {
+        id,
+        published: true,
+      },
+      {
+        authorId: true,
+        author: {
+          select: {
+            role: true,
+          },
+        },
+      },
+    )) as RequestedPostInfoForCheck;
+
+    recordNotFoundAndForbiddenException(
+      post,
+      user.role,
+      user.sub,
+      'delete',
+      'post',
+    );
+
+    const deletedPost = await this.postService.deletePost({ id });
+
+    return {
+      success: true,
+      message: 'Post deleted successfully',
+      data: deletedPost,
+    };
+  }
 }
-
-// @Get('filtered/:searchString')
-// async getFilteredPosts(
-//   @Param('searchString') searchString: string,
-//   @Request() request,
-//   @Query() params: GetQueryPostParamsDto,
-// ): Promise<PostResponse> {
-//   const queryPayload = buildQueryPayload(params, false);
-//   const posts = await this.postService.getPosts({
-//     ...queryPayload,
-//     where: {
-//       authorId: request.user.sub,
-//       OR: [
-//         {
-//           title: {
-//             contains: searchString.toLowerCase(),
-//             mode: 'insensitive',
-//           },
-//         },
-//         {
-//           content: {
-//             contains: searchString.toLowerCase(),
-//             mode: 'insensitive',
-//           },
-//         },
-//       ],
-//     },
-//   });
-
-//   return {
-//     success: true,
-//     message: 'Filtered posts retrieved successfully',
-//     data: posts,
-//   };
-// }

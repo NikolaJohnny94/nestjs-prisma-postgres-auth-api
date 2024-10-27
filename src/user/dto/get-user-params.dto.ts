@@ -1,6 +1,6 @@
 import { IsOptional, IsInt, IsObject } from 'class-validator';
 import { Prisma } from '@prisma/client';
-export class GetPostParamsDto {
+export class GetUserParamsDto {
   @IsOptional()
   @IsInt()
   skip?: number;
@@ -9,11 +9,11 @@ export class GetPostParamsDto {
   take?: number;
   @IsOptional()
   @IsObject()
-  cursor?: Prisma.PostWhereUniqueInput;
+  cursor?: Prisma.UserWhereUniqueInput;
   @IsOptional()
   @IsObject()
-  where?: Prisma.PostWhereInput;
+  where?: Prisma.UserWhereInput;
   @IsOptional()
   @IsObject()
-  orderBy?: Prisma.PostOrderByWithRelationInput;
+  orderBy?: Prisma.UserOrderByWithRelationInput;
 }

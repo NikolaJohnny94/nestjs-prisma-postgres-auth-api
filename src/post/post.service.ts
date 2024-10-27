@@ -1,13 +1,14 @@
 //Core
 import { Injectable } from '@nestjs/common';
 //Prisma
-import { Prisma, Post, Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 // Services
 import { PrismaService } from '../prisma/prisma.service';
 //DTOs
-import { GetPostParamsDto } from './dto/params/get-post-params.dto';
-
-type PostWithAuthor = Post & { author: { role: Role } };
+import { GetPostParamsDto } from './dto';
+//Types
+import { Post } from '@prisma/client';
+import { PostWithAuthorDataIncluded } from './types';
 
 @Injectable()
 export class PostService {
@@ -15,20 +16,17 @@ export class PostService {
 
   async getPost(
     postWhereUniqueInput: Prisma.PostWhereUniqueInput,
-  ): Promise<PostWithAuthor | null> {
+    select?: Prisma.PostSelect,
+  ): Promise<PostWithAuthorDataIncluded | null> {
     return this.prisma.post.findUnique({
       where: postWhereUniqueInput,
-      include: {
-        author: {
-          select: {
-            role: true,
-          },
-        },
-      },
+      select,
     });
   }
 
-  async getPosts(params: GetPostParamsDto): Promise<Post[]> {
+  async getPosts(
+    params: GetPostParamsDto,
+  ): Promise<PostWithAuthorDataIncluded[]> {
     const { skip, take, cursor, where, orderBy } = params;
     return this.prisma.post.findMany({
       skip,
@@ -36,6 +34,14 @@ export class PostService {
       cursor,
       where,
       orderBy,
+      include: {
+        author: {
+          select: {
+            name: true,
+            role: true,
+          },
+        },
+      },
     });
   }
 
@@ -58,22 +64,10 @@ export class PostService {
 
   async deletePost(where: Prisma.PostWhereUniqueInput): Promise<Post> {
     return await this.prisma.post.delete({
-      // where
       where: {
         id: where.id,
         authorId: where.authorId,
       },
-    });
-  }
-
-  async updatePostOtherExample(params: {
-    id: number;
-    data: Prisma.PostUpdateInput;
-  }): Promise<Post> {
-    const { data, id } = params;
-    return this.prisma.post.update({
-      data,
-      where: { id },
     });
   }
 }

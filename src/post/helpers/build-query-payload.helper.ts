@@ -1,9 +1,11 @@
-import { GetQueryPostParamsDto } from '../dto/params/get-query-post-params.dto';
+//Prisma
+import { Prisma } from '@prisma/client';
+//Types
+import { PostParams } from '../types';
 
 export function buildQueryPayload(
-  params: GetQueryPostParamsDto,
-  includeWhereClause: boolean = true,
-  whereClause?: any,
+  params: PostParams,
+  additionalWhereClause?: Prisma.PostWhereInput,
 ) {
   const { skip, take, cursor, orderBy, where } = params;
   const queryPayload = {
@@ -11,12 +13,10 @@ export function buildQueryPayload(
     take: take ? Number(take) : undefined,
     cursor: cursor ? { id: Number(cursor) } : undefined,
     orderBy: orderBy ? JSON.parse(orderBy) : undefined,
-    ...(includeWhereClause && {
-      where: {
-        ...JSON.parse(where || '{}'),
-        ...whereClause,
-      },
-    }),
+    where: {
+      ...JSON.parse(where || '{}'),
+      ...additionalWhereClause,
+    },
   };
   return queryPayload;
 }

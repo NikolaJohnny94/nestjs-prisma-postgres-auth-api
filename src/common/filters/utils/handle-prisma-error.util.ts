@@ -1,13 +1,11 @@
+//Prisma
 import { Prisma } from '@prisma/client';
-
-type ErrorMeta = {
-  modelName?: string;
-  target?: string[];
-};
+//Types
+import { ErrorMeta, PrismaErrorResponse } from './types';
 
 export function handlePrismaError(
   error: Prisma.PrismaClientKnownRequestError,
-): { status: number; message: string } {
+): PrismaErrorResponse {
   let status = 500;
   let message = 'An unexpected error occurred. Please try again later.';
   let modelName: string;

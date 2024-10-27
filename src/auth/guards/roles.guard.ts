@@ -1,3 +1,4 @@
+//Core
 import {
   CanActivate,
   ExecutionContext,
@@ -5,6 +6,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+//Types
+import { LoggedUser } from 'src/shared/types/logged-user.type';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -12,10 +15,11 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
+
     if (!roles) return true;
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const user: LoggedUser = request.user;
 
     const hasRole = () => roles.includes(user.role);
     if (!hasRole()) {

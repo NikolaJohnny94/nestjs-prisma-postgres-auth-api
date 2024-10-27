@@ -7,33 +7,22 @@ import {
   HttpStatus,
   UseGuards,
   Request,
-  Req,
 } from '@nestjs/common';
 // Services
 import { AuthService } from './auth.service';
-import { UserService } from 'src/user/user.service';
 //Guards
 import { AuthGuard } from './auth.guard';
-//Types and DTOs
-import { SignInDto } from './dto/singin-dto';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
 // Decorators
 import { Public } from './decorators/public.decorator';
+//DTOs
+import { SignInDto } from './dto/signin-dto';
+import { CreateUserDto } from 'src/shared/dto/create-user.dto';
+//Types
+import { BaseResponse, AuthResponse, TokenResponse } from './types';
 
-type AuthResponse = {
-  success: boolean;
-  message: string;
-  data: {
-    access_token: string;
-    refresh_token: string;
-  } | null;
-};
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private userService: UserService,
-  ) {}
+  constructor(private authService: AuthService) {}
 
   @Public()
   @HttpCode(HttpStatus.OK)
@@ -51,9 +40,8 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signup')
-  async signUp(@Body() signUpDto: CreateUserDto) {
+  async signUp(@Body() signUpDto: CreateUserDto): Promise<AuthResponse> {
     const newUser = await this.authService.signUp(signUpDto);
-
     return {
       success: true,
       message: 'User signed up successfully',
@@ -61,12 +49,10 @@ export class AuthController {
     };
   }
 
-  // @UseGuards(AuthGuard)
   @Post('signout')
-  async signOut(@Request() req) {
-    const userId = req.user.sub;
+  async signOut(@Request() request): Promise<BaseResponse> {
+    const userId = request.user.sub;
     await this.authService.signOut(userId);
-
     return {
       success: true,
       message: 'User signed out successfully',
@@ -75,8 +61,11 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @Post('refresh')
-  async refreshToken(@Body('refresh_token') refreshToken: string, @Req() req) {
-    const userId = req.user.sub;
+  async refreshToken(
+    @Body('refresh_token') refreshToken: string,
+    @Request() request,
+  ): Promise<Pick<TokenResponse, 'access_token'>> {
+    const userId = request.user.sub;
     return this.authService.getNewAccessToken(userId, refreshToken);
   }
 }

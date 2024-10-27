@@ -10,12 +10,8 @@ import {
 import { Prisma } from '@prisma/client';
 //Utils
 import { handlePrismaError, getCustomErrorMessage } from './utils';
-
-type HttpExceptionResponse = {
-  message: string | string[];
-  error: string;
-  statusCode: number;
-};
+//Types
+import { HttpExceptionResponsePayload } from './types/http-exception-response-payload.type';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -29,7 +25,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      message = (exception.getResponse() as HttpExceptionResponse).message;
+      message = (exception.getResponse() as HttpExceptionResponsePayload)
+        .message;
     } else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       const { message: prismaClientMessage, status: prismaClientStatus } =
         handlePrismaError(exception);
