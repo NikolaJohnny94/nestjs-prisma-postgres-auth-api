@@ -8,12 +8,11 @@ import { AppController } from './app.controller';
 import { UserModule } from './user/user.module';
 import { PostModule } from './post/post.module';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module';
 //Middlewares
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
-  imports: [PrismaModule, UserModule, PostModule, AuthModule],
+  imports: [UserModule, PostModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

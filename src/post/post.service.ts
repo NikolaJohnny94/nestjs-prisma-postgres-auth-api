@@ -26,6 +26,7 @@ export class PostService {
 
   async getPosts(
     params: GetPostParamsDto,
+    select?: Prisma.PostSelect,
   ): Promise<PostWithAuthorDataIncluded[]> {
     const { skip, take, cursor, where, orderBy } = params;
     return this.prisma.post.findMany({
@@ -34,40 +35,45 @@ export class PostService {
       cursor,
       where,
       orderBy,
-      include: {
-        author: {
-          select: {
-            name: true,
-            role: true,
-          },
-        },
-      },
+      select,
     });
   }
 
-  async createPost(data: Prisma.PostCreateInput): Promise<Post> {
+  async createPost(
+    data: Prisma.PostCreateInput,
+    select?: Prisma.PostSelect,
+  ): Promise<Post> {
     return this.prisma.post.create({
       data,
+      select,
     });
   }
 
-  async updatePost(params: {
-    where: Prisma.PostWhereUniqueInput;
-    data: Prisma.PostUpdateInput;
-  }): Promise<Post> {
+  async updatePost(
+    params: {
+      where: Prisma.PostWhereUniqueInput;
+      data: Prisma.PostUpdateInput;
+    },
+    select?: Prisma.PostSelect,
+  ): Promise<Post> {
     const { data, where } = params;
     return this.prisma.post.update({
       data,
       where,
+      select,
     });
   }
 
-  async deletePost(where: Prisma.PostWhereUniqueInput): Promise<Post> {
+  async deletePost(
+    where: Prisma.PostWhereUniqueInput,
+    select?: Prisma.PostSelect,
+  ): Promise<Post> {
     return await this.prisma.post.delete({
       where: {
         id: where.id,
         authorId: where.authorId,
       },
+      select,
     });
   }
 }

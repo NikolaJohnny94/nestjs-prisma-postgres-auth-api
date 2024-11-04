@@ -5,25 +5,32 @@ import {
   Post,
   HttpCode,
   HttpStatus,
-  UseGuards,
   Request,
 } from '@nestjs/common';
 // Services
 import { AuthService } from './auth.service';
-//Guards
-import { AuthGuard } from './auth.guard';
 // Decorators
-import { Public } from './decorators/public.decorator';
+import { Public } from 'src/shared/decorators';
+import {
+  SignInSwagger,
+  SignUpSwagger,
+  SignOutSwagger,
+  RefreshTokenSwagger,
+} from './decorators/swagger-auth.decorator';
 //DTOs
 import { SignInDto } from './dto/signin-dto';
 import { CreateUserDto } from 'src/shared/dto/create-user.dto';
 //Types
 import { BaseResponse, AuthResponse, TokenResponse } from './types';
+//Swagger
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @SignInSwagger()
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signin')
@@ -37,6 +44,7 @@ export class AuthController {
     };
   }
 
+  @SignUpSwagger()
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signup')
@@ -49,6 +57,7 @@ export class AuthController {
     };
   }
 
+  @SignOutSwagger()
   @Post('signout')
   async signOut(@Request() request): Promise<BaseResponse> {
     const userId = request.user.sub;
@@ -59,7 +68,7 @@ export class AuthController {
     };
   }
 
-  @UseGuards(AuthGuard)
+  @RefreshTokenSwagger()
   @Post('refresh')
   async refreshToken(
     @Body('refresh_token') refreshToken: string,

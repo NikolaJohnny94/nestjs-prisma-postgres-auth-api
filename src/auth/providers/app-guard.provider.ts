@@ -1,4 +1,4 @@
-import { AuthGuard } from '../auth.guard';
+import { AuthGuard } from '../guards/auth.guard';
 
 export const AppGuardProvider = {
   provide: 'APP_GUARD',

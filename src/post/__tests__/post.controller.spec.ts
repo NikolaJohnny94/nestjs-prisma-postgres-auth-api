@@ -1,7 +1,10 @@
+//Core
 import { Test, TestingModule } from '@nestjs/testing';
-import { PostController } from '../post.controller';
-import { PostService } from '../post.service';
+//Services
+import { PostService } from 'src/post/post.service';
 import { PrismaService } from 'src/prisma/prisma.service';
+//Controllers
+import { PostController } from 'src/post/post.controller';
 
 describe('PostController', () => {
   let controller: PostController;

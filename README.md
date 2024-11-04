@@ -1,3 +1,103 @@
+# Blog Posts API
+
+## Overview
+
+This project is a Blog Posts API built with NestJS, Prisma, and PostgreSQL. It provides endpoints for managing blog posts, users, and authentication. The API supports role-based access control with three roles: user, admin, and moderator.
+
+### 💻 Stack: <br/>
+
+<img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_nestjs_icon_130355.png' width='26' style='margin-right: 2px;'/>[Nest.js](https://nestjs.com/)<br/>
+<img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_light_prisma_icon_130444.png' style='margin-right: 5px;' width='20px'>[Prisma](https://www.prisma.io/)<br/>
+<img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/postgresql_original_logo_icon_146391.png' style='margin-right: 5px;' width='20px'>[PostgreSQL](https://www.postgresql.org/)<br/>
+<img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_swagger_icon_130134.png" width="22px" style='margin-top: -1px;'/> [Swagger](https://swagger.io/)<br>
+
+## Features
+
+- **User Management**: Create, update, delete, and retrieve user profiles.
+- **Authentication**: Sign up, sign in, sign out, and refresh access tokens.
+- **Role-Based Access Control**: Differentiate access and permissions based on user roles (user, admin, moderator).
+- **Blog Posts Management**: Create, update, delete, and retrieve blog posts, including published posts.
+
+## Technologies Used
+
+- **NestJS**: A progressive Node.js framework for building efficient, reliable, and scalable server-side applications.
+- **Prisma**: A next-generation ORM for Node.js and TypeScript.
+- **PostgreSQL**: A powerful, open-source object-relational database system.
+
+## Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-repo/blog-posts-api.git
+   cd blog-posts-api
+   ```
+2. **Install dependencies:**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables: Create a .env file in the root directory and add the following variables:**:
+
+   ```bash
+   DATABASE_URL=postgresql://username:password@localhost:5432/blog-posts-api JWT_SECRET=your_jwt_secret
+   ```
+
+4. **Run database migrations:**:
+
+   ```bash
+   npx prisma migrate
+   ```
+
+5. **Generate Prisma client:**:
+
+   ```bash
+   npx prisma generate
+   ```
+
+6. **Start the application:**:
+
+   ```bash
+   npm run start:dev
+   ```
+
+## API Endpoints
+
+The following endpoints are defined in the project:
+
+- **Authentication Endpoints:**
+
+  - `POST /auth/signin` - Signin user
+  - `POST /auth/signup` - Signup user
+  - `POST /auth/signout` - Signout user
+  - `POST /auth/refresh` - Refresh access token
+
+- **User Endpoints:**
+
+  - `GET /users` - Get all users
+  - `POST /users` - Create user
+  - `GET /users/profile` - Get user's profile
+  - `PUT /users/profile` - Update user's profile
+  - `DELETE /users/profile` - Delete profile
+  - `GET /users/public` - Get public users info
+  - `GET /users/{id}` - Get user by ID
+  - `PUT /users/{id}` - Update user
+  - `DELETE /users/{id}` - Delete user
+  - `GET /users/public/{id}` - Get public user by ID
+
+- **Post Endpoints:**
+
+  - `GET /posts` - Get all posts
+  - `POST /posts` - Create new post
+  - `GET /posts/published` - Get all published posts
+  - `GET /posts/published/{id}` - Get published post by ID
+  - `PUT /posts/published/{id}` - Update logged user's post
+  - `DELETE /posts/published/{id}` - Delete logged user's post
+  - `GET /posts/{id}` - Get logged user's post by ID
+  - `PUT /posts/{id}` - Update published post
+  - `DELETE /posts/{id}` - Delete logged user's post
+  <hr/>
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>

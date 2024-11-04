@@ -6,8 +6,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-//Types
-import { LoggedUser } from 'src/shared/types/logged-user.type';
+//Express
+import { Request } from 'express';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -18,12 +18,14 @@ export class RolesGuard implements CanActivate {
 
     if (!roles) return true;
 
-    const request = context.switchToHttp().getRequest();
-    const user: LoggedUser = request.user;
+    const request = context.switchToHttp().getRequest<Request>();
+    const user = request.user;
 
     const hasRole = () => roles.includes(user.role);
     if (!hasRole()) {
-      throw new ForbiddenException('You do not have the required role');
+      throw new ForbiddenException(
+        'You do not have the required permission to perform this action',
+      );
     }
 
     return true;

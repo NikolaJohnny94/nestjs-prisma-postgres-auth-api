@@ -1,8 +1,13 @@
+//Core
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from '../auth.service';
-import { AuthGuard } from '../auth.guard';
+//Services
+import { AuthService } from 'src/auth/auth.service';
+//Modules
 import { JwtModule } from '@nestjs/jwt';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserModule } from 'src/user/user.module';
+//Guards
+import { AuthGuard } from 'src/auth/guards';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -10,6 +15,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
+        PrismaModule,
         UserModule,
         JwtModule.register({
           global: true,

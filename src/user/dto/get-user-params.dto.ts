@@ -1,4 +1,6 @@
+//Validators
 import { IsOptional, IsInt, IsObject } from 'class-validator';
+//Types
 import { Prisma } from '@prisma/client';
 export class GetUserParamsDto {
   @IsOptional()

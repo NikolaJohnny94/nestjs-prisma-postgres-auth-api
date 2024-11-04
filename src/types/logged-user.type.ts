@@ -1,4 +1,3 @@
-import { Request } from 'express';
 import { Role } from '@prisma/client';
 
 export type LoggedUser = {
@@ -8,9 +7,3 @@ export type LoggedUser = {
   iat: number;
   exp: number;
 };
-
-declare module 'express' {
-  export interface Request {
-    user?: LoggedUser;
-  }
-}

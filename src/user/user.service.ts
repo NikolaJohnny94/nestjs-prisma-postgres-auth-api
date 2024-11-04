@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 // DTOs
 import { CreateUserDto } from 'src/shared/dto/create-user.dto';
-import { GetUserParamsDto } from './dto/get-user-params.dto';
+import { GetUserParamsDto, UpdateProfileDto, UpdateUserDto } from './dto';
 //Types
 import { User } from '@prisma/client';
 
@@ -39,47 +39,67 @@ export class UserService {
     });
   }
 
-  async createUser(data: CreateUserDto): Promise<User> {
+  async createUser(
+    data: CreateUserDto,
+    select?: Prisma.UserSelect,
+  ): Promise<User> {
     return this.prisma.user.create({
       data,
+      select,
     });
   }
 
-  async updateUser(params: {
-    where: Prisma.UserWhereUniqueInput;
-    data: Prisma.UserUpdateInput;
-  }): Promise<User> {
+  async updateUser(
+    params: {
+      where: Prisma.UserWhereUniqueInput;
+      data: UpdateProfileDto | UpdateUserDto;
+    },
+    select?: Prisma.UserSelect,
+  ): Promise<User> {
     const { where, data } = params;
     return this.prisma.user.update({
-      data,
       where,
+      data,
+      select,
     });
   }
 
-  async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
+  async deleteUser(
+    where: Prisma.UserWhereUniqueInput,
+    select?: Prisma.UserSelect,
+  ): Promise<User> {
     return this.prisma.user.delete({
       where,
+      select,
     });
   }
 
-  async storeRefreshToken(userId: number, refreshToken: string): Promise<User> {
-    return this.updateUser({
+  async storeRefreshToken(
+    userId: number,
+    refreshToken: string,
+  ): Promise<{ refreshToken: string }> {
+    return this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken },
+      select: { refreshToken: true },
     });
   }
 
-  async removeRefreshToken(userId: number): Promise<User> {
-    return this.updateUser({
+  async removeRefreshToken(userId: number): Promise<{ refreshToken: string }> {
+    return this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken: null },
+      select: { refreshToken: true },
     });
   }
 
-  async incrementTokenVersion(userId: number): Promise<User> {
+  async incrementTokenVersion(
+    userId: number,
+  ): Promise<{ tokenVersion: number }> {
     return this.prisma.user.update({
       where: { id: userId },
       data: { tokenVersion: { increment: 1 } },
+      select: { tokenVersion: true },
     });
   }
 }

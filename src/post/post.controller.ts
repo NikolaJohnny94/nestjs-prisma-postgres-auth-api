@@ -15,22 +15,38 @@ import {
 import { Controller } from '@nestjs/common';
 // Services
 import { PostService } from './post.service';
-// Types and DTOs
-import { CreatePostDto, UpdatePostDto } from './dto';
-import { PostResponse, PostParams, RequestedPostInfoForCheck } from './types';
+//Guards
+import { RolesGuard } from 'src/shared/guards/roles.guard';
 // Utils and helpers
 import { buildQueryPayload } from './helpers/build-query-payload.helper';
 import { recordNotFoundAndForbiddenException } from 'src/shared/utils/record-not-found-and-forbidden-exception.util';
 // Decorators
-import { Public } from 'src/auth/decorators/public.decorator';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { LoggedUser } from 'src/shared/types/logged-user.type';
+import { Public, Roles } from 'src/shared/decorators';
+import {
+  GetUsersPostsSwagger,
+  GetAllPublishedPostsSwagger,
+  GetPublishedPostByIdSwagger,
+  GetUsersPostByIdSwagger,
+  CreatePostSwagger,
+  UpdatePostSwagger,
+  UpdatePublishedPostSwagger,
+  DeletePostSwagger,
+  DeletePublishedPostSwagger,
+} from './decorators/swagger-post.decorator';
+//  DTOs
+import { CreatePostDto, UpdatePostDto } from './dto';
+//Types
+import { Request as ExpressRequest } from 'express';
+import { PostResponse, PostParams, RequestedPostInfoForCheck } from './types';
+//Swagger
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Posts')
 @Controller('posts')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
+  @GetUsersPostsSwagger()
   @Get('')
   async getUsersPosts(
     @Query() params: PostParams,
@@ -40,11 +56,17 @@ export class PostController {
       authorId: request.user.sub,
     });
 
-    const data = await this.postService.getPosts(queryPayload);
+    const data = await this.postService.getPosts(queryPayload, {
+      id: true,
+      title: true,
+      content: true,
+      published: true,
+    });
 
     return { success: true, message: 'Posts retrieved successfully', data };
   }
 
+  @GetAllPublishedPostsSwagger()
   @Public()
   @Get('published')
   async getAllPublishedPosts(
@@ -54,49 +76,87 @@ export class PostController {
       published: true,
     });
 
-    const data = await this.postService.getPosts(queryPayload);
+    const data = await this.postService.getPosts(queryPayload, {
+      id: true,
+      title: true,
+      content: true,
+      author: {
+        select: {
+          id: true,
+          name: true,
+          role: true,
+        },
+      },
+    });
 
-    return { success: true, message: 'Posts retrieved successfully', data };
+    return {
+      success: true,
+      message: 'All published posts retrieved successfully!',
+      data,
+    };
   }
 
+  @GetPublishedPostByIdSwagger()
   @Public()
   @Get('published/:id')
   async getPublishedPostById(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<PostResponse> {
-    const post = await this.postService.getPost({
-      id,
-      published: true,
-    });
+    const post = await this.postService.getPost(
+      {
+        id,
+        published: true,
+      },
+      {
+        title: true,
+        content: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
+    );
 
     if (!post) throw new NotFoundException('Post not found');
 
     return {
       success: true,
-      message: 'Post retrieved successfully',
+      message: `Published post with id: ${id} retrieved successfully`,
       data: post,
     };
   }
 
+  @GetUsersPostByIdSwagger()
   @Get(':id')
   async getUsersPostById(
     @Param('id', ParseIntPipe) id: number,
     @Request() request,
   ): Promise<PostResponse> {
-    const post = await this.postService.getPost({
-      id,
-      authorId: request.user.sub,
-    });
+    const post = await this.postService.getPost(
+      {
+        id,
+        authorId: request.user.sub,
+      },
+      {
+        title: true,
+        content: true,
+        published: true,
+      },
+    );
 
     if (!post) throw new NotFoundException('Post not found');
 
     return {
       success: true,
-      message: 'Post retrieved successfully',
+      message: `Post with id: ${id} retrieved successfully`,
       data: post,
     };
   }
 
+  @CreatePostSwagger()
   @Post('')
   async createNewPost(
     @Body() newPost: CreatePostDto,
@@ -104,25 +164,29 @@ export class PostController {
   ): Promise<PostResponse> {
     const { title, content } = newPost;
 
-    const data = await this.postService.createPost({
-      title,
-      content,
-      author: {
-        connect: { id: request.user.sub },
+    const data = await this.postService.createPost(
+      {
+        title,
+        content,
+        author: {
+          connect: { id: request.user.sub },
+        },
       },
-    });
+      { id: true, title: true, content: true },
+    );
 
     return { success: true, message: 'Post created successfully', data };
   }
 
+  @UpdatePostSwagger()
   @Put(':id')
   async updatePost(
     @Param('id', ParseIntPipe) id: number,
     @Body()
     updatedPostData: UpdatePostDto,
-    @Request() request,
+    @Request() request: ExpressRequest,
   ): Promise<PostResponse> {
-    const user: LoggedUser = request.user;
+    const user = request.user;
     const post = (await this.postService.getPost(
       {
         id,
@@ -135,10 +199,18 @@ export class PostController {
 
     if (!post) throw new NotFoundException('Post not found');
 
-    const updatedPost = await this.postService.updatePost({
-      where: { id },
-      data: updatedPostData,
-    });
+    const updatedPost = await this.postService.updatePost(
+      {
+        where: { id },
+        data: updatedPostData,
+      },
+      {
+        id: true,
+        title: true,
+        content: true,
+        published: true,
+      },
+    );
 
     return {
       success: true,
@@ -147,12 +219,13 @@ export class PostController {
     };
   }
 
+  @DeletePostSwagger()
   @Delete(':id')
   async deletePost(
     @Param('id', ParseIntPipe) id: number,
-    @Request() request,
+    @Request() request: ExpressRequest,
   ): Promise<PostResponse> {
-    const user: LoggedUser = request.user;
+    const user = request.user;
 
     const post = await this.postService.getPost(
       { id, authorId: user.sub },
@@ -161,7 +234,10 @@ export class PostController {
 
     if (!post) throw new NotFoundException('Post not found');
 
-    const deletedPost = await this.postService.deletePost({ id });
+    const deletedPost = await this.postService.deletePost(
+      { id },
+      { id: true, title: true, content: true, published: true },
+    );
 
     return {
       success: true,
@@ -170,6 +246,7 @@ export class PostController {
     };
   }
 
+  @UpdatePublishedPostSwagger()
   @UseGuards(RolesGuard)
   @Roles('admin', 'moderator')
   @Put('published/:id')
@@ -177,9 +254,9 @@ export class PostController {
     @Param('id', ParseIntPipe) id: number,
     @Body()
     updatedPostData: UpdatePostDto,
-    @Request() request,
+    @Request() request: ExpressRequest,
   ): Promise<PostResponse> {
-    const user: LoggedUser = request.user;
+    const user = request.user;
     const post = (await this.postService.getPost(
       {
         id,
@@ -203,26 +280,40 @@ export class PostController {
       'post',
     );
 
-    const updatedPost = await this.postService.updatePost({
-      where: { id },
-      data: updatedPostData,
-    });
+    const updatedPost = await this.postService.updatePost(
+      {
+        where: { id },
+        data: updatedPostData,
+      },
+      {
+        id: true,
+        title: true,
+        content: true,
+        author: {
+          select: {
+            name: true,
+            role: true,
+          },
+        },
+      },
+    );
 
     return {
       success: true,
-      message: 'Post updated successfully',
+      message: 'Published post updated successfully',
       data: updatedPost,
     };
   }
 
+  @DeletePublishedPostSwagger()
   @UseGuards(RolesGuard)
   @Roles('admin', 'moderator')
   @Delete('published/:id')
   async deletePublishedPost(
     @Param('id', ParseIntPipe) id: number,
-    @Request() request,
+    @Request() request: ExpressRequest,
   ): Promise<PostResponse> {
-    const user: LoggedUser = request.user;
+    const user = request.user;
 
     const post = (await this.postService.getPost(
       {
@@ -247,11 +338,25 @@ export class PostController {
       'post',
     );
 
-    const deletedPost = await this.postService.deletePost({ id });
+    const deletedPost = await this.postService.deletePost(
+      { id },
+      {
+        id: true,
+        title: true,
+        content: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
+    );
 
     return {
       success: true,
-      message: 'Post deleted successfully',
+      message: 'Published post deleted successfully',
       data: deletedPost,
     };
   }

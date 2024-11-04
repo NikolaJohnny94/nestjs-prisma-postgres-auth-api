@@ -8,7 +8,7 @@ export class LoggerMiddleware implements NestMiddleware {
 
     res.on('finish', () => {
       const duration = Date.now() - start;
-      const { method, originalUrl, body } = req;
+      const { method, originalUrl, body, params } = req;
       const { statusCode } = res;
 
       console.log('\n', method, originalUrl, body, statusCode, `${duration}ms`);

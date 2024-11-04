@@ -1,8 +1,12 @@
+//Core
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserController } from '../user.controller';
-import { UserService } from '../user.service';
+//Services
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserService } from 'src/user/user.service';
 import { AuthService } from 'src/auth/auth.service';
+//Controllers
+import { UserController } from 'src/user/user.controller';
+//Modules
 import { JwtService } from '@nestjs/jwt';
 
 describe('UserController', () => {
