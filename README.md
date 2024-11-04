@@ -1,35 +1,110 @@
-# Blog Posts API
+# <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_nestjs_icon_130355.png' width='32' style='margin-right: 2px;'/>Nest.js, <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_light_prisma_icon_130444.png' style='margin-right: 5px;' width='32px'> Prisma, and <img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/postgresql_original_logo_icon_146391.png' style='margin-right: 5px;' width='32px'>PostgreSQL Blog Posts API with <img src='https://jwt.io/img/pic_logo.svg' width='26px'> JWT authentification , 📃posts and 👤 user management, 📑 pagination and <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_swagger_icon_130134.png" width="32px"/> Swagger documentation 🤗
 
-## Overview
+## Overview 📜
 
-This project is a Blog Posts API built with NestJS, Prisma, and PostgreSQL. It provides endpoints for managing blog posts, users, and authentication. The API supports role-based access control with three roles: user, admin, and moderator.
+Blog Posts API is a robust and scalable API built with NestJS, Prisma, PostgreSQL, and Swagger. This project is designed to provide a comprehensive set of endpoints for managing blog posts, users, and authentication, with a strong emphasis on security, role-based access control, and efficient data management. The API supports pagination to handle large datasets effectively, ensuring smooth and performant operations.
 
-### 💻 Stack: <br/>
+<hr/>
 
-<img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_nestjs_icon_130355.png' width='26' style='margin-right: 2px;'/>[Nest.js](https://nestjs.com/)<br/>
-<img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_light_prisma_icon_130444.png' style='margin-right: 5px;' width='20px'>[Prisma](https://www.prisma.io/)<br/>
-<img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/postgresql_original_logo_icon_146391.png' style='margin-right: 5px;' width='20px'>[PostgreSQL](https://www.postgresql.org/)<br/>
-<img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_swagger_icon_130134.png" width="22px" style='margin-top: -1px;'/> [Swagger](https://swagger.io/)<br>
+### 💻 Technologies used: <br/>
 
-## Features
+<img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_nestjs_icon_130355.png' width='26' style='margin-right: 2px;'/>[Nest.js](https://nestjs.com/) - A progressive Node.js framework for building efficient, reliable, and scalable server-side applications. Nest.js provides a modular architecture, making it easy to organize and maintain the codebase.<br/>
+<img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_light_prisma_icon_130444.png' style='margin-right: 5px;' width='20px'>[Prisma](https://www.prisma.io/) - A next-generation ORM for Node.js and TypeScript. Prisma provides a type-safe database client, making it easy to interact with the PostgreSQL database and ensuring data integrity.<br/>
+<img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/postgresql_original_logo_icon_146391.png' style='margin-right: 5px;' width='20px'>[PostgreSQL](https://www.postgresql.org/) - A powerful, open-source object-relational database system known for its reliability and performance. PostgreSQL is used to store and manage the data for the API.<br/>
+<img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_swagger_icon_130134.png" width="22px" style='margin-top: -1px;'/> [Swagger](https://swagger.io/) - A tool for documenting APIs, providing an interactive interface to explore and test the endpoints. Swagger makes it easy to generate and maintain API documentation.<br>
+<img src='https://jwt.io/img/pic_logo.svg' width='26px'> [JWT](https://jwt.io/) - A compact, URL-safe means of representing claims to be transferred between two parties. JWTs are used for securely transmitting information between parties as a JSON object, ensuring secure authentication and authorization.
 
-- **User Management**: Create, update, delete, and retrieve user profiles.
-- **Authentication**: Sign up, sign in, sign out, and refresh access tokens.
-- **Role-Based Access Control**: Differentiate access and permissions based on user roles (user, admin, moderator).
-- **Blog Posts Management**: Create, update, delete, and retrieve blog posts, including published posts.
+<hr/>
 
-## Technologies Used
+## Key Features 🔑
 
-- **NestJS**: A progressive Node.js framework for building efficient, reliable, and scalable server-side applications.
-- **Prisma**: A next-generation ORM for Node.js and TypeScript.
-- **PostgreSQL**: A powerful, open-source object-relational database system.
+- **User Management**: Users can create an account, update their profile, and delete their profile. Moderators and admins have additional privileges to manage other users' posts and profiles.
+- **Authentication**: Secure authentication using JWT with support for signin, signup, signout, and token refresh.
+- **Role-Based Access Control**: Differentiate access and permissions based on user roles (user, moderator, admin).
+- **Blog Posts Management**: Users can perform CRUD operations on their posts. Moderators can manage posts from users, and admins can manage posts from both users and moderators.
+- **API Documentation**: Comprehensive API documentation using Swagger.
+
+### Authentication 🔏
+
+The API uses JSON Web Tokens (JWT) for authentication, ensuring secure and stateless user sessions. The authentication system supports the following operations:
+
+- **Signin**: Users can sign in to their accounts using their credentials. Upon successful authentication, a JWT access token and a refresh token are issued.
+- **Signup**: New users can create an account by providing their details. The signup process includes validation to ensure data integrity and security.
+- **Signout**: Users can sign out of their accounts, invalidating their current session.
+- **Refresh**: The API supports token refresh functionality, allowing users to obtain a new access token using a valid refresh token. This ensures continuous authentication without requiring users to sign in repeatedly.
+
+### Role-Based Access Control ⛑️
+
+The API implements a robust role-based access control system, ensuring that users have appropriate permissions based on their roles. The following roles are supported:
+
+- **User**: Users can perform CRUD (Create, Read, Update, Delete) operations on their own posts. They can also update and delete their profiles. The creation of a user account happens during the signup process.
+- **Moderator**: Moderators have all the permissions of users, plus the ability to update and delete posts created by users. This role is designed to help manage content and maintain the quality of posts.
+- **Admin**: Admins have all the permissions of moderators, plus the ability to update and delete posts created by moderators. This role provides full control over the content and user management.
+
+### Guards 🛡️
+
+The API uses two types of guards to protect routes and ensure that only authorized users can access specific endpoints:
+
+- **Auth Guard**: This guard ensures that only authenticated users can access certain routes. It verifies the presence and validity of the JWT access token.
+- **Roles Guard**: This guard ensures that users have the appropriate role to access specific routes. It checks the user's role against the required roles for the endpoint.
+
+### Blog Posts Management 📚
+
+The API provides comprehensive functionality for managing blog posts. Users can create, read, update, and delete their own posts. Moderators and admins have additional privileges to manage posts created by other users. The following operations are supported:
+
+- **Create Post**: Users can create new blog posts by providing the necessary details.
+- **Read Posts**: Users can retrieve a list of all posts or a specific post by its ID. The API supports filtering and pagination to efficiently manage large datasets.
+- **Update Post**: Users can update their own posts. Moderators can update posts created by users, and admins can update posts created by both users and moderators.
+- **Delete Post**: Users can delete their own posts. Moderators can delete posts created by users, and admins can delete posts created by both users and moderators.
+
+### API Documentation 📄
+
+The API is documented using Swagger, providing an interactive interface to explore and test the endpoints. The documentation includes detailed information about each endpoint, including the request parameters, response structure, and possible status codes. This makes it easy for developers to understand and integrate with the API. The documentation also covers pagination, explaining how to use the skip and take parameters to efficiently manage large datasets.
+
+## API Endpoints 🔗
+
+The following endpoints are defined in the project:
+
+- **Authentication Endpoints:**
+
+  - `POST /auth/signin` - Signin user **(Public)**
+  - `POST /auth/signup` - Signup user **(Public)**
+  - `POST /auth/signout` - Signout user **(Private)**
+  - `POST /auth/refresh` - Refresh access token **(Private)**
+
+- **User Endpoints:**
+
+  - `GET /users` - Get all users **(Private)**
+  - `GET /users/{id}` - Get user by ID **(Private)**
+  - `GET /users/public` - Get public users info **(Public)**
+  - `GET /users/public/{id}` - Get public user by ID **(Public)**
+  - `GET /users/profile` - Get user's profile **(Private)**
+  - `POST /users` - Create user **(Private)**
+  - `PUT /users/profile` - Update user's profile **(Private)**
+  - `DELETE /users/profile` - Delete profile **(Private)**
+  - `PUT /users/{id}` - Update user **(Private)**
+  - `DELETE /users/{id}` - Delete user **(Private)**
+
+- **Post Endpoints:**
+
+  - `GET /posts` - Get all posts **(Private)**
+  - `GET /posts/{id}` - Get logged user's post by ID **(Private)**
+  - `GET /posts/published` - Get all published posts **(Public)**
+  - `GET /posts/published/{id}` - Get published post by ID **(Public)**
+  - `POST /posts` - Create new post **(Private)**
+  - `PUT /posts/{id}` - Update published post **(Private)**
+  - `DELETE /posts/{id}` - Delete logged user's post **(Private)**
+  - `PUT /posts/published/{id}` - Update logged user's post **(Private)**
+  - `DELETE /posts/published/{id}` - Delete logged user's post **(Private)**
+
+<hr/>
 
 ## Installation
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-repo/blog-posts-api.git
-   cd blog-posts-api
+   git clone https://github.com/NikolaJohnny94/nestjs-auth-api.git
+   cd nestjs-auth-api
    ```
 2. **Install dependencies:**:
 
@@ -40,7 +115,8 @@ This project is a Blog Posts API built with NestJS, Prisma, and PostgreSQL. It p
 3. **Set up environment variables: Create a .env file in the root directory and add the following variables:**:
 
    ```bash
-   DATABASE_URL=postgresql://username:password@localhost:5432/blog-posts-api JWT_SECRET=your_jwt_secret
+   DATABASE_URL=your_db_url
+   JWT_SECRET=your_jwt_secret
    ```
 
 4. **Run database migrations:**:
@@ -61,41 +137,6 @@ This project is a Blog Posts API built with NestJS, Prisma, and PostgreSQL. It p
    npm run start:dev
    ```
 
-## API Endpoints
-
-The following endpoints are defined in the project:
-
-- **Authentication Endpoints:**
-
-  - `POST /auth/signin` - Signin user
-  - `POST /auth/signup` - Signup user
-  - `POST /auth/signout` - Signout user
-  - `POST /auth/refresh` - Refresh access token
-
-- **User Endpoints:**
-
-  - `GET /users` - Get all users
-  - `POST /users` - Create user
-  - `GET /users/profile` - Get user's profile
-  - `PUT /users/profile` - Update user's profile
-  - `DELETE /users/profile` - Delete profile
-  - `GET /users/public` - Get public users info
-  - `GET /users/{id}` - Get user by ID
-  - `PUT /users/{id}` - Update user
-  - `DELETE /users/{id}` - Delete user
-  - `GET /users/public/{id}` - Get public user by ID
-
-- **Post Endpoints:**
-
-  - `GET /posts` - Get all posts
-  - `POST /posts` - Create new post
-  - `GET /posts/published` - Get all published posts
-  - `GET /posts/published/{id}` - Get published post by ID
-  - `PUT /posts/published/{id}` - Update logged user's post
-  - `DELETE /posts/published/{id}` - Delete logged user's post
-  - `GET /posts/{id}` - Get logged user's post by ID
-  - `PUT /posts/{id}` - Update published post
-  - `DELETE /posts/{id}` - Delete logged user's post
   <hr/>
 
 <p align="center">
