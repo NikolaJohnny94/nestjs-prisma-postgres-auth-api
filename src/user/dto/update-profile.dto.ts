@@ -8,5 +8,6 @@ import { Role } from '@prisma/client';
 import { PartialType } from '@nestjs/swagger';
 
 export class UpdateProfileDto extends PartialType(CreateUserDto) {
-  @StrictValidation({ message: 'The role field is not allowed' }) role?: Role;
+  @StrictValidation({ message: 'The role field is not allowed' })
+  role?: Role;
 }

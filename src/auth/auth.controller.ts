@@ -35,8 +35,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('signin')
   async signIn(@Body() signInDto: SignInDto): Promise<AuthResponse> {
-    const { email, pass } = signInDto;
-    const tokens = await this.authService.signIn(email, pass);
+    const { email, password } = signInDto;
+    const tokens = await this.authService.signIn(email, password);
     return {
       success: true,
       message: 'User signed in successfully',

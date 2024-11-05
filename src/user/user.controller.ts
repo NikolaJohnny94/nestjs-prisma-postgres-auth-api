@@ -12,6 +12,8 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
+//Bcrypt
+import * as bcrypt from 'bcrypt';
 // Services
 import { UserService } from './user.service';
 //Guards
@@ -40,6 +42,8 @@ import { Request as ExpressRequest } from 'express';
 import { UserResponse } from './types';
 //Swagger
 import { ApiTags } from '@nestjs/swagger';
+//Constants
+import { bcryptSaltRounds } from 'src/shared/constants';
 
 @ApiTags('Users')
 @Controller('users')
@@ -184,15 +188,23 @@ export class UserController {
   @Put('/profile')
   async updateProfile(
     @Body()
-    updatedUsersData: UpdateProfileDto,
+    updatedProfileData: UpdateProfileDto,
     @Request() request: ExpressRequest,
   ): Promise<UserResponse> {
     const { sub: userId } = request.user;
 
+    if (updatedProfileData.password) {
+      const hashedPassword = await bcrypt.hash(
+        updatedProfileData.password,
+        bcryptSaltRounds,
+      );
+      updatedProfileData.password = hashedPassword;
+    }
+
     const updatedPost = await this.userService.updateUser(
       {
         where: { id: userId },
-        data: updatedUsersData,
+        data: updatedProfileData,
       },
       {
         name: true,
@@ -255,6 +267,15 @@ export class UserController {
       'update',
       'user',
     );
+
+    if (updatedUsersData.password) {
+      const hashedPassword = await bcrypt.hash(
+        updatedUsersData.password,
+        bcryptSaltRounds,
+      );
+      updatedUsersData.password = hashedPassword;
+    }
+
     const updatedPost = await this.userService.updateUser(
       {
         where: { id },

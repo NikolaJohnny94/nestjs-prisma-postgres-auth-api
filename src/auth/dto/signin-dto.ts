@@ -5,5 +5,5 @@ export class SignInDto {
   email: string;
 
   @IsString()
-  pass: string;
+  password: string;
 }

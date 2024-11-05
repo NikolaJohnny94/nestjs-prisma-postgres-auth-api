@@ -4,6 +4,8 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+//Bcrypt
+import * as bcrypt from 'bcrypt';
 // Services
 import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
@@ -11,6 +13,8 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/shared/dto/create-user.dto';
 // Types
 import { TokenResponse } from './types';
+//Constants
+import { bcryptSaltRounds } from 'src/shared/constants';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +23,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(email: string, pass: string): Promise<TokenResponse> {
+  async signIn(email: string, password: string): Promise<TokenResponse> {
     const user = await this.usersService.getUser({ email });
 
     if (!user)
@@ -27,7 +31,9 @@ export class AuthService {
         `User with email: ${email} was not found in the Database`,
       );
 
-    if (user?.password !== pass)
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword)
       throw new UnauthorizedException('Incorect password. Pleaase try again.');
 
     const { tokenVersion: updatedTokenVersion } =
@@ -47,7 +53,14 @@ export class AuthService {
     return { refresh_token, access_token };
   }
   async signUp(signUpData: CreateUserDto): Promise<TokenResponse> {
-    const user = await this.usersService.createUser(signUpData);
+    const { password } = signUpData;
+
+    const hashedPassword = await bcrypt.hash(password, bcryptSaltRounds);
+
+    const user = await this.usersService.createUser({
+      ...signUpData,
+      password: hashedPassword,
+    });
 
     const { tokenVersion: updatedTokenVersion } =
       await this.usersService.incrementTokenVersion(user.id);

@@ -103,8 +103,8 @@ The following endpoints are defined in the project:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/NikolaJohnny94/nestjs-auth-api.git
-   cd nestjs-auth-api
+   git clone https://github.com/NikolaJohnny94/nestjs-prisma-postgres-auth-api.git
+   cd nestjs-prisma-postgres-auth-api
    ```
 2. **Install dependencies:**:
 
