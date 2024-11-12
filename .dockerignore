@@ -1,0 +1,21 @@
+# Node modules
+node_modules
+npm-debug.log
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Docker files
+Dockerfile
+docker-compose.yml
+
+#Env files
+.env
+
+# Prisma
+prisma/migrations
+
+# Build output
+dist

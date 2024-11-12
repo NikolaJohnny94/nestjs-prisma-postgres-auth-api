@@ -1,8 +1,8 @@
-# <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_nestjs_icon_130355.png' width='32' style='margin-right: 2px;'/>Nest.js, <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_light_prisma_icon_130444.png' style='margin-right: 5px;' width='32px'> Prisma, and <img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/postgresql_original_logo_icon_146391.png' style='margin-right: 5px;' width='32px'>PostgreSQL Blog Posts API with <img src='https://jwt.io/img/pic_logo.svg' width='26px'> JWT authentification , 📃posts and 👤 user management, 📑 pagination and <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_swagger_icon_130134.png" width="32px"/> Swagger documentation 🤗
+# <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_docker_icon_130643.png' width='36'> Dockerized <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_nestjs_icon_130355.png' width='32' style='margin-right: 2px;'/>Nest.js, <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_light_prisma_icon_130444.png' style='margin-right: 5px;' width='32px'> Prisma, and <img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/postgresql_original_logo_icon_146391.png' style='margin-right: 5px;' width='32px'>PostgreSQL Blog Posts API with <img src='https://jwt.io/img/pic_logo.svg' width='26px'> JWT authentification , 📃posts and 👤 user management, 📑 pagination and <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_swagger_icon_130134.png" width="32px"/> Swagger documentation 🤗
 
 ## Overview 📜
 
-Blog Posts API is a robust and scalable API built with NestJS, Prisma, PostgreSQL, and Swagger. This project is designed to provide a comprehensive set of endpoints for managing blog posts, users, and authentication, with a strong emphasis on security, role-based access control, and efficient data management. The API supports pagination to handle large datasets effectively, ensuring smooth and performant operations.
+**_Blog Posts API_** is a robust and scalable **API** built with **Nest.js**, **Prisma**, **PostgreSQL**, and **Swagger**. This project is designed to provide a comprehensive set of _endpoints_ for managing _blog posts_, _users_, and _authentication_, with a strong emphasis on _security_, _role-based_ access control, and efficient _data management_. The **API** supports **pagination** to handle large datasets effectively, ensuring smooth and performant operations. Additionally, the project includes **Docker** support, allowing for easy setup and deployment in containerized environments.
 
 <hr/>
 
@@ -12,17 +12,30 @@ Blog Posts API is a robust and scalable API built with NestJS, Prisma, PostgreSQ
 <img src='https://cdn.icon-icons.com/icons2/2107/PNG/64/file_type_light_prisma_icon_130444.png' style='margin-right: 5px;' width='20px'>[Prisma](https://www.prisma.io/) - A next-generation ORM for Node.js and TypeScript. Prisma provides a type-safe database client, making it easy to interact with the PostgreSQL database and ensuring data integrity.<br/>
 <img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/postgresql_original_logo_icon_146391.png' style='margin-right: 5px;' width='20px'>[PostgreSQL](https://www.postgresql.org/) - A powerful, open-source object-relational database system known for its reliability and performance. PostgreSQL is used to store and manage the data for the API.<br/>
 <img src="https://cdn.icon-icons.com/icons2/2107/PNG/512/file_type_swagger_icon_130134.png" width="22px" style='margin-top: -1px;'/> [Swagger](https://swagger.io/) - A tool for documenting APIs, providing an interactive interface to explore and test the endpoints. Swagger makes it easy to generate and maintain API documentation.<br>
-<img src='https://jwt.io/img/pic_logo.svg' width='26px'> [JWT](https://jwt.io/) - A compact, URL-safe means of representing claims to be transferred between two parties. JWTs are used for securely transmitting information between parties as a JSON object, ensuring secure authentication and authorization.
+<img src='https://jwt.io/img/pic_logo.svg' width='26px'> [JWT](https://jwt.io/) - A compact, URL-safe means of representing claims to be transferred between two parties. JWTs are used for securely transmitting information between parties as a JSON object, ensuring secure authentication and authorization.<br/>
+<img src='https://cdn.icon-icons.com/icons2/2415/PNG/64/docker_original_wordmark_logo_icon_146557.png' width='26px'> [Docker](https://www.docker.com/) - A platform for developing, shipping, and running applications in containers. Docker enables you to package your application and its dependencies into a container, ensuring consistency across different environments.
 
 <hr/>
 
 ## Key Features 🔑
 
-- **User Management**: Users can create an account, update their profile, and delete their profile. Moderators and admins have additional privileges to manage other users' posts and profiles.
-- **Authentication**: Secure authentication using JWT with support for signin, signup, signout, and token refresh.
-- **Role-Based Access Control**: Differentiate access and permissions based on user roles (user, moderator, admin).
-- **Blog Posts Management**: Users can perform CRUD operations on their posts. Moderators can manage posts from users, and admins can manage posts from both users and moderators.
-- **API Documentation**: Comprehensive API documentation using Swagger.
+- **User Management**: Users with **ADMIN** role can create an account, update and delete other users' accounts with **USER** and **MODERATOR** roles.
+- **Authentication**: Secure authentication using **JWT** with support for **signin**, **signup**, **signout**, and **token refresh**.
+- **Role-Based Access Control**: Differentiate access and permissions based on user roles (**USER**, **MODERATOR**, **ADMIN**).
+- **Guards** : Protect routes and ensure only authorized users can access specific endpoints using **Auth Guard** and **Roles Guard**.
+- **Blog Posts Management**: Users can perform **CRUD** operations on their posts. Moderators can manage posts from users, and admins can manage posts from both users and moderators.
+- **API Documentation**: Comprehensive **API** documentation using **Swagger**.
+- **Database Seeding**: Populate the database with initial data for development or testing purposes.
+
+### User Management 👥
+
+The **API** provides comprehensive functionality for managing _user_ accounts. Users with **ADMIN** roles can _create_, _update_, and _delete_ other users profiles with **USERS** AND **MODERATOR** roles. The following operations are supported:
+
+- **Create Account**: Users can create a new account by providing the necessary details.
+
+- **Update Profile**: Users can update their profile information, such as _name_, _email_, _password_ and _role_.
+
+- **Delete Profile**: Users can delete other other users profiles with **USERS** AND **MODERATOR** roles, removing all their data from the system.
 
 ### Authentication 🔏
 
@@ -61,7 +74,33 @@ The API provides comprehensive functionality for managing blog posts. Users can 
 
 The API is documented using Swagger, providing an interactive interface to explore and test the endpoints. The documentation includes detailed information about each endpoint, including the request parameters, response structure, and possible status codes. This makes it easy for developers to understand and integrate with the API. The documentation also covers pagination, explaining how to use the skip and take parameters to efficiently manage large datasets.
 
+The **Swagger UI** will be available on **/v1/api/docs** route.
+
+### Database Seeding 🌱
+
+The API includes functionality for seeding the database with initial data. This is useful for setting up a development environment or for testing purposes. The following operations are supported:
+
+#### Seed Command:
+
+To populate your database with initial data, use the following command:
+
+```bash
+npm run prisma:seed
+```
+
+This command will execute the seed script, allowing you to set up initial data for development or testing purposes. It will have user with email: "**_test_user@example.com_**" and password "**Password123.**" with **ADMIN** role, and also 3 other users (one for every role: **_ADMIN_**, **_MODERATOR_**, adn **_USER_**), and every user will have 3 posts. If you are running project with Docker, then this script will run on initialization and you can test the the **signin** endoint with "**Test User**" creadentials provided above.
+
+#### Benefits of Database Seeding:
+
+- Consistent Development Environment: Ensures that all developers have the same initial data, reducing discrepancies and bugs.
+
+- Testing: Provides a reliable dataset for testing, ensuring that tests are run against known data.
+
+- Demo Data: Allows you to quickly set up demo data for presentations or client demonstrations
+
 ## API Endpoints 🔗
+
+The base path for all endpoints is `/v1/api`.
 
 The following endpoints are defined in the project:
 
@@ -99,43 +138,74 @@ The following endpoints are defined in the project:
 
 <hr/>
 
-## Installation
+## Installation 🛠️
 
-1. **Clone the repository**:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/NikolaJohnny94/nestjs-prisma-postgres-auth-api.git
    cd nestjs-prisma-postgres-auth-api
    ```
-2. **Install dependencies:**:
+2. **Install dependencies:**
 
    ```bash
    npm install
    ```
 
-3. **Set up environment variables: Create a .env file in the root directory and add the following variables:**:
+3. **Set up environment variables: Create a .env file in the root directory and add the following variables:**
 
    ```bash
    DATABASE_URL=your_db_url
    JWT_SECRET=your_jwt_secret
    ```
 
-4. **Run database migrations:**:
+4. **Run database migrations:**
 
    ```bash
-   npx prisma migrate
+   npm run prisma:migrate:dev --name init
    ```
 
-5. **Generate Prisma client:**:
+5. **Generate Prisma client:**
 
    ```bash
-   npx prisma generate
+   npm run prisma:generate
    ```
 
-6. **Start the application:**:
+## Run the project 🚀
 
-   ```bash
-   npm run start:dev
-   ```
+**Start the application:**
+
+```bash
+npm run start:dev
+```
+
+If you run the project locally, the **API** will be available at **http://localhost:3000/v1/api**
+
+## Run the project with Docker 🐋
+
+**Set up environment variables:**
+<br/>Create a **_.env.docker.local_** file in the root directory and add the following _variables_:
+
+```bash
+POSTGRES_USER=your_db_username
+POSTGRES_PASSWORD=your_db_password
+POSTGRES_DB=your_db_name
+DATABASE_URL=your_db_url
+JWT_SECRET=your_jwt_secret
+```
+
+**Build the images:**
+
+```bash
+docker-compose --env-file .env.docker.local build
+```
+
+**Creating and starting the containers:**
+
+```bash
+docker-compose --env-file .env.docker.local up
+```
+
+If you run the project locally, the **API** will be available on **http://localhost/v1/api** thanks to the [**_nginx_**](https://nginx.org/en/) that is set up as service in _docker-compose_ file. **Nginx** acts as a reverse proxy, forwarding requests from **_http://localhost/v1/api_** to the appropriate service running inside the **Docker** container. This setup allows you to access your **API** through a single, consistent **URL**, even if the underlying services are running on different ports.
 
   <hr/>
 

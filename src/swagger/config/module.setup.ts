@@ -5,5 +5,5 @@ import { documentFactory } from './document.factory';
 import { INestApplication } from '@nestjs/common';
 
 export const swaggerModuleSetup = (app: INestApplication<any>) => {
-  return SwaggerModule.setup('api', app, documentFactory(app));
+  return SwaggerModule.setup('v1/api/docs', app, documentFactory(app));
 };

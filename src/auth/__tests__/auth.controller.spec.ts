@@ -9,7 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserModule } from 'src/user/user.module';
 //Guards
-import { AuthGuard } from 'src/auth/guards';
+import { AuthGuard } from '../guards/auth.guard';
 
 describe('AuthController', () => {
   let controller: AuthController;

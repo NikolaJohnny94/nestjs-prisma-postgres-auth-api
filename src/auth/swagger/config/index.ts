@@ -24,7 +24,7 @@ export const swaggerAuthConfig = {
         type: 'object',
         properties: {
           email: { type: 'string', example: 'jerry@email.com' },
-          pass: { type: 'string', example: 'Jerry123.' },
+          password: { type: 'string', example: 'Jerry123.' },
         },
       },
     },
@@ -55,7 +55,7 @@ export const swaggerAuthConfig = {
         properties: {
           name: { type: 'string', example: 'Jerry' },
           email: { type: 'string', example: 'jerry@email.com' },
-          pass: { type: 'string', example: 'Jerry123.' },
+          password: { type: 'string', example: 'Jerry123.' },
         },
       },
     },
